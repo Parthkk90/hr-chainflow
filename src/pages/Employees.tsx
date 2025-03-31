@@ -13,7 +13,7 @@ export default function Employees() {
         <div className="flex flex-col space-y-4">
           <h1 className="text-3xl font-bold tracking-tight">Employees</h1>
           <p className="text-muted-foreground">
-            Manage your employees and their blockchain-verified records.
+            Manage your employees and their blockchain-verified records. Add new employees by connecting their wallet addresses to enable on-chain verification.
           </p>
         </div>
         

@@ -10,7 +10,9 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search } from "lucide-react";
+import { Search, Plus } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import AddEmployeeModal from "./AddEmployeeModal";
 
 interface Employee {
   id: number;
@@ -66,13 +68,38 @@ const mockEmployees: Employee[] = [
 
 export default function EmployeeTable() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [employees, setEmployees] = useState<Employee[]>(mockEmployees);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const { toast } = useToast();
   
-  const filteredEmployees = mockEmployees.filter(employee => 
+  const filteredEmployees = employees.filter(employee => 
     employee.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     employee.position.toLowerCase().includes(searchTerm.toLowerCase()) ||
     employee.department.toLowerCase().includes(searchTerm.toLowerCase()) ||
     employee.walletAddress.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const handleAddEmployee = (newEmployee: {
+    name: string;
+    position: string;
+    department: string;
+    walletAddress: string;
+  }) => {
+    // Create new employee with generated ID and default "Active" status
+    const employeeToAdd: Employee = {
+      id: employees.length > 0 ? Math.max(...employees.map(e => e.id)) + 1 : 1,
+      status: "Active",
+      ...newEmployee
+    };
+    
+    setEmployees([...employees, employeeToAdd]);
+    setShowAddModal(false);
+    
+    toast({
+      title: "Employee added",
+      description: `${newEmployee.name} has been added successfully.`,
+    });
+  };
 
   return (
     <div className="space-y-4">
@@ -86,7 +113,10 @@ export default function EmployeeTable() {
             className="pl-8"
           />
         </div>
-        <Button>Add Employee</Button>
+        <Button onClick={() => setShowAddModal(true)}>
+          <Plus className="mr-1 h-4 w-4" />
+          Add Employee
+        </Button>
       </div>
 
       <div className="rounded-md border">
@@ -131,6 +161,12 @@ export default function EmployeeTable() {
           </TableBody>
         </Table>
       </div>
+      
+      <AddEmployeeModal
+        isOpen={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        onAddEmployee={handleAddEmployee}
+      />
     </div>
   );
 }

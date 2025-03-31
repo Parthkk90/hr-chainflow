@@ -27,9 +27,10 @@ export const getWeb3ModalComponent = () => {
     <Web3Modal
       projectId={projectId}
       ethereumClient={ethereumClient}
-      themeMode="light"
-      themeColor="blue"
-      themeBackground="themeColor"
+      themeVariables={{
+        '--w3m-accent-color': '#3B82F6',
+        '--w3m-background-color': '#FFFFFF'
+      }}
     />
   );
 };

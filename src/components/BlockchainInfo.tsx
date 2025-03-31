@@ -1,7 +1,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAccount, useNetwork, useBalance } from "wagmi";
-import { Link1Icon, CheckSquareIcon, XSquareIcon } from "lucide-react";
+import { LinkIcon, CheckSquareIcon, XSquareIcon } from "lucide-react";
 
 export default function BlockchainInfo() {
   const { address, isConnected } = useAccount();
@@ -56,12 +56,12 @@ export default function BlockchainInfo() {
             <div className="flex items-center">
               <p className="text-xs md:text-sm truncate">{address}</p>
               <a
-                href={`https://${chain?.id === 1 ? "" : chain?.network + "."}etherscan.io/address/${address}`}
+                href={`https://${chain?.id === 1 ? "" : chain?.id === 137 ? "polygon." : chain?.id === 80001 ? "mumbai.polygonscan." : chain?.id === 11155111 ? "sepolia.etherscan." : ""}etherscan.io/address/${address}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="ml-2 text-hrblue-500 hover:text-hrblue-700"
               >
-                <Link1Icon className="h-4 w-4" />
+                <LinkIcon className="h-4 w-4" />
               </a>
             </div>
           </div>

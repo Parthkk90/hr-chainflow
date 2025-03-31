@@ -20,12 +20,15 @@ export const wagmiConfig = createConfig({
 
 export const ethereumClient = new EthereumClient(wagmiConfig, chains);
 
-export const web3Modal = (
-  <Web3Modal
-    projectId={projectId}
-    ethereumClient={ethereumClient}
-    themeMode="light"
-    themeColor="blue"
-    themeBackground="themeColor"
-  />
-);
+// Export a function that returns the Web3Modal component instead of directly using JSX
+export const getWeb3ModalComponent = () => {
+  return Web3Modal && (
+    <Web3Modal
+      projectId={projectId}
+      ethereumClient={ethereumClient}
+      themeMode="light"
+      themeColor="blue"
+      themeBackground="themeColor"
+    />
+  );
+};

@@ -5,7 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { WagmiConfig } from "wagmi";
-import { web3Modal, wagmiConfig } from "@/lib/web3config";
+import { wagmiConfig, getWeb3ModalComponent } from "@/lib/web3config";
 import { HelmetProvider } from "react-helmet-async";
 
 import Layout from "./components/Layout";
@@ -25,7 +25,7 @@ const App = () => (
         <TooltipProvider>
           <Toaster />
           <Sonner />
-          {web3Modal}
+          {getWeb3ModalComponent()}
           <BrowserRouter>
             <Routes>
               <Route element={<Layout />}>

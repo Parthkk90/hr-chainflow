@@ -97,7 +97,7 @@ export default function Payroll() {
         baseSalary: employee.baseSalary,
         deductions: Math.round(deductions * 100) / 100,
         finalAmount: Math.round(finalAmount * 100) / 100,
-        status: "Pending",
+        status: "Pending" as const, // Explicitly type as one of the allowed status values
         month: selectedMonth,
         year: parseInt(selectedYear)
       };
@@ -122,7 +122,7 @@ export default function Payroll() {
   const processPayroll = (id: number) => {
     setPayrollRecords(
       payrollRecords.map(record =>
-        record.id === id ? { ...record, status: "Processed" } : record
+        record.id === id ? { ...record, status: "Processed" as const } : record
       )
     );
     
@@ -135,7 +135,7 @@ export default function Payroll() {
   const processAllPending = () => {
     setPayrollRecords(
       payrollRecords.map(record =>
-        record.status === "Pending" ? { ...record, status: "Processed" } : record
+        record.status === "Pending" ? { ...record, status: "Processed" as const } : record
       )
     );
     

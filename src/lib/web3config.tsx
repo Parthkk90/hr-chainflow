@@ -3,6 +3,7 @@ import { configureChains, createConfig } from "wagmi";
 import { mainnet, sepolia, polygon, polygonMumbai } from "wagmi/chains";
 import { EthereumClient, w3mConnectors, w3mProvider } from "@web3modal/ethereum";
 import { Web3Modal } from "@web3modal/react";
+import React from "react";
 
 // Choose which chains you'd like to support
 const chains = [mainnet, sepolia, polygon, polygonMumbai];

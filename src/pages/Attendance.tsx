@@ -1,8 +1,9 @@
 
 import { Helmet } from "react-helmet";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertCircle } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import AttendanceTracker from "@/components/AttendanceTracker";
+import LeaveRequests from "@/components/LeaveRequests";
 
 export default function Attendance() {
   return (
@@ -19,13 +20,18 @@ export default function Attendance() {
           </p>
         </div>
         
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Coming Soon</AlertTitle>
-          <AlertDescription>
-            The attendance and leave management module is under development. Check back soon for automated tracking features.
-          </AlertDescription>
-        </Alert>
+        <Tabs defaultValue="attendance" className="space-y-4">
+          <TabsList>
+            <TabsTrigger value="attendance">Attendance Tracking</TabsTrigger>
+            <TabsTrigger value="leave">Leave Requests</TabsTrigger>
+          </TabsList>
+          <TabsContent value="attendance" className="space-y-4">
+            <AttendanceTracker />
+          </TabsContent>
+          <TabsContent value="leave" className="space-y-4">
+            <LeaveRequests />
+          </TabsContent>
+        </Tabs>
         
         <Card>
           <CardHeader>
@@ -37,7 +43,7 @@ export default function Attendance() {
           <CardContent>
             <div className="flex flex-col space-y-6">
               <p>
-                The HR ChainFlow attendance system will utilize smart contracts to track employee attendance 
+                The HR ChainFlow attendance system utilizes smart contracts to track employee attendance 
                 and manage leave requests. This ensures accuracy, transparency, and automates the approval process
                 based on company policies stored on the blockchain.
               </p>

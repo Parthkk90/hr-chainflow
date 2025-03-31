@@ -10,9 +10,10 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Plus } from "lucide-react";
+import { Search, Plus, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import AddEmployeeModal from "./AddEmployeeModal";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 interface Employee {
   id: number;
@@ -101,6 +102,15 @@ export default function EmployeeTable() {
     });
   };
 
+  const handleDeleteEmployee = (id: number) => {
+    setEmployees(employees.filter(employee => employee.id !== id));
+    
+    toast({
+      title: "Employee deleted",
+      description: "Employee has been removed from the system.",
+    });
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center space-x-2">
@@ -128,6 +138,7 @@ export default function EmployeeTable() {
               <TableHead className="hidden md:table-cell">Department</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="hidden lg:table-cell">Wallet Address</TableHead>
+              <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -149,11 +160,39 @@ export default function EmployeeTable() {
                 <TableCell className="hidden lg:table-cell">
                   <span className="text-xs">{employee.walletAddress.substring(0, 6)}...{employee.walletAddress.substring(employee.walletAddress.length - 4)}</span>
                 </TableCell>
+                <TableCell>
+                  <div className="flex items-center space-x-2">
+                    <Button variant="outline" size="sm" onClick={() => window.location.href = `/contracts?employee=${employee.id}`}>
+                      View Contracts
+                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="outline" size="icon" className="text-red-500">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            This action cannot be undone. This will permanently delete the employee and all associated data.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => handleDeleteEmployee(employee.id)}>
+                            Delete
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
+                </TableCell>
               </TableRow>
             ))}
             {filteredEmployees.length === 0 && (
               <TableRow>
-                <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                   No employees found
                 </TableCell>
               </TableRow>

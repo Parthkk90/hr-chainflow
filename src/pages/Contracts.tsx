@@ -3,69 +3,109 @@ import { Helmet } from "react-helmet";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { useState } from "react";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Briefcase, FileText, CheckCircle } from "lucide-react";
+import { useSearchParams } from "react-router-dom";
+import CreateContractModal from "@/components/CreateContractModal";
 
 interface Contract {
   id: number;
+  employeeId: number;
   employeeName: string;
   contractType: string;
   startDate: Date;
   endDate: Date | null;
   status: "Draft" | "Pending Signature" | "Active" | "Expired" | "Terminated";
+  salary: number;
+  workingHours: number;
 }
 
 // Mock data for contracts demonstration
 const mockContracts: Contract[] = [
   {
     id: 1,
+    employeeId: 1,
     employeeName: "Sarah Johnson",
     contractType: "Permanent",
     startDate: new Date(2022, 0, 15),
     endDate: null,
-    status: "Active"
+    status: "Active",
+    salary: 5000,
+    workingHours: 40
   },
   {
     id: 2,
+    employeeId: 2,
     employeeName: "Michael Smith",
     contractType: "Permanent",
     startDate: new Date(2022, 2, 10),
     endDate: null,
-    status: "Active"
+    status: "Active",
+    salary: 4500,
+    workingHours: 40
   },
   {
     id: 3,
+    employeeId: 3,
     employeeName: "Emily Davis",
     contractType: "Contract",
     startDate: new Date(2022, 6, 1),
     endDate: new Date(2023, 5, 30),
-    status: "Pending Signature"
+    status: "Pending Signature",
+    salary: 4800,
+    workingHours: 40
   },
   {
     id: 4,
+    employeeId: 4,
     employeeName: "James Wilson",
     contractType: "Probation",
     startDate: new Date(2023, 3, 15),
     endDate: new Date(2023, 6, 15),
-    status: "Active"
+    status: "Active",
+    salary: 5200,
+    workingHours: 40
   },
   {
     id: 5,
+    employeeId: 5,
     employeeName: "David Thompson",
     contractType: "Contract",
     startDate: new Date(2023, 0, 1),
     endDate: new Date(2023, 11, 31),
-    status: "Draft"
+    status: "Draft",
+    salary: 5500,
+    workingHours: 35
   }
+];
+
+// Mock employees data
+const mockEmployees = [
+  { id: 1, name: "Sarah Johnson" },
+  { id: 2, name: "Michael Smith" },
+  { id: 3, name: "Emily Davis" },
+  { id: 4, name: "James Wilson" },
+  { id: 5, name: "David Thompson" }
 ];
 
 export default function Contracts() {
   const [contracts, setContracts] = useState<Contract[]>(mockContracts);
   const [selectedContract, setSelectedContract] = useState<Contract | null>(null);
   const [isViewOpen, setIsViewOpen] = useState(false);
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [searchParams] = useSearchParams();
+  const employeeIdParam = searchParams.get('employee');
+  const selectedEmployeeId = employeeIdParam ? parseInt(employeeIdParam) : undefined;
   const { toast } = useToast();
+
+  // Open create contract modal if employee is specified in URL
+  useEffect(() => {
+    if (selectedEmployeeId) {
+      setIsCreateOpen(true);
+    }
+  }, [selectedEmployeeId]);
 
   const getStatusColor = (status: string) => {
     switch(status) {
@@ -103,6 +143,20 @@ export default function Contracts() {
     });
   };
 
+  const handleCreateContract = (newContract: Omit<Contract, "id">) => {
+    const contractToAdd = {
+      ...newContract,
+      id: contracts.length > 0 ? Math.max(...contracts.map(c => c.id)) + 1 : 1,
+    } as Contract;
+    
+    setContracts([...contracts, contractToAdd]);
+  };
+
+  // Filter contracts if employee is specified
+  const filteredContracts = selectedEmployeeId 
+    ? contracts.filter(contract => contract.employeeId === selectedEmployeeId)
+    : contracts;
+
   return (
     <>
       <Helmet>
@@ -122,10 +176,12 @@ export default function Contracts() {
             <div>
               <CardTitle>Employment Contracts</CardTitle>
               <CardDescription>
-                View and manage employee contracts
+                {selectedEmployeeId 
+                  ? `Viewing contracts for ${mockEmployees.find(e => e.id === selectedEmployeeId)?.name || 'Employee'}`
+                  : 'View and manage employee contracts'}
               </CardDescription>
             </div>
-            <Button>
+            <Button onClick={() => setIsCreateOpen(true)}>
               <FileText className="mr-2 h-4 w-4" />
               Create New Contract
             </Button>
@@ -140,11 +196,12 @@ export default function Contracts() {
                     <TableHead className="hidden md:table-cell">Start Date</TableHead>
                     <TableHead className="hidden md:table-cell">End Date</TableHead>
                     <TableHead>Status</TableHead>
+                    <TableHead>Salary</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {contracts.map((contract) => (
+                  {filteredContracts.map((contract) => (
                     <TableRow key={contract.id}>
                       <TableCell className="font-medium">{contract.employeeName}</TableCell>
                       <TableCell>{contract.contractType}</TableCell>
@@ -159,6 +216,7 @@ export default function Contracts() {
                           {contract.status}
                         </span>
                       </TableCell>
+                      <TableCell>${contract.salary.toLocaleString()}</TableCell>
                       <TableCell>
                         <Button 
                           variant="outline" 
@@ -170,6 +228,13 @@ export default function Contracts() {
                       </TableCell>
                     </TableRow>
                   ))}
+                  {filteredContracts.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                        No contracts found
+                      </TableCell>
+                    </TableRow>
+                  )}
                 </TableBody>
               </Table>
             </div>
@@ -251,6 +316,16 @@ export default function Contracts() {
                         <p>{selectedContract.endDate ? selectedContract.endDate.toLocaleDateString() : "Indefinite"}</p>
                       </div>
                     </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <h3 className="text-sm font-medium">Salary</h3>
+                        <p>${selectedContract.salary.toLocaleString()} per month</p>
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-medium">Working Hours</h3>
+                        <p>{selectedContract.workingHours} hours per week</p>
+                      </div>
+                    </div>
                     <div>
                       <h3 className="text-sm font-medium">Contract Terms</h3>
                       <div className="mt-2 p-4 border rounded-md bg-gray-50 text-sm">
@@ -259,8 +334,8 @@ export default function Contracts() {
                         <p className="mb-2"><strong>Position:</strong> [Position]</p>
                         <p className="mb-2"><strong>Department:</strong> [Department]</p>
                         <p className="mb-2"><strong>Contract Type:</strong> {selectedContract.contractType}</p>
-                        <p className="mb-2"><strong>Working Hours:</strong> 40 hours per week, Monday to Friday</p>
-                        <p className="mb-2"><strong>Compensation:</strong> [Amount] per [Period]</p>
+                        <p className="mb-2"><strong>Working Hours:</strong> {selectedContract.workingHours} hours per week, Monday to Friday</p>
+                        <p className="mb-2"><strong>Compensation:</strong> ${selectedContract.salary.toLocaleString()} per month</p>
                         <p className="mb-2"><strong>Benefits:</strong> As per company policy</p>
                         <p><strong>Blockchain Verification:</strong> 0x8f5e54a8... (Contract Hash)</p>
                       </div>
@@ -282,6 +357,14 @@ export default function Contracts() {
             )}
           </DialogContent>
         </Dialog>
+        
+        <CreateContractModal
+          isOpen={isCreateOpen}
+          onClose={() => setIsCreateOpen(false)}
+          onCreateContract={handleCreateContract}
+          employees={mockEmployees}
+          selectedEmployeeId={selectedEmployeeId}
+        />
       </div>
     </>
   );

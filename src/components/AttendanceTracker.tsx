@@ -1,31 +1,139 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Clock, CheckCircle, Users } from "lucide-react";
+import { Clock, CheckCircle, Users, AlertTriangle } from "lucide-react";
 
 // Mock data for demonstration
 const mockEmployees = [
-  { id: 1, name: "Sarah Johnson", department: "Human Resources", status: "Present" },
-  { id: 2, name: "Michael Smith", department: "Engineering", status: "Present" },
-  { id: 3, name: "Emily Davis", department: "Marketing", status: "Absent" },
-  { id: 4, name: "James Wilson", department: "Finance", status: "Late" },
-  { id: 5, name: "David Thompson", department: "Product", status: "Present" },
+  { 
+    id: 1, 
+    name: "Sarah Johnson", 
+    department: "Human Resources", 
+    status: "Present",
+    contractId: 1,
+    salary: 5000,
+    leaveBalance: 20
+  },
+  { 
+    id: 2, 
+    name: "Michael Smith", 
+    department: "Engineering", 
+    status: "Present",
+    contractId: 2,
+    salary: 4500,
+    leaveBalance: 18
+  },
+  { 
+    id: 3, 
+    name: "Emily Davis", 
+    department: "Marketing", 
+    status: "Absent",
+    contractId: 3,
+    salary: 4800,
+    leaveBalance: 15
+  },
+  { 
+    id: 4, 
+    name: "James Wilson", 
+    department: "Finance", 
+    status: "Late",
+    contractId: 4,
+    salary: 5200,
+    leaveBalance: 22
+  },
+  { 
+    id: 5, 
+    name: "David Thompson", 
+    department: "Product", 
+    status: "Present",
+    contractId: 5,
+    salary: 5500,
+    leaveBalance: 20
+  },
 ];
+
+interface AttendanceRecord {
+  employeeId: number;
+  date: string;
+  status: string;
+  recordedAt: Date;
+}
 
 export default function AttendanceTracker() {
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [employees, setEmployees] = useState(mockEmployees);
+  const [attendanceHistory, setAttendanceHistory] = useState<AttendanceRecord[]>([]);
   const { toast } = useToast();
 
+  // Generate a date string in YYYY-MM-DD format
+  const formatDateForStorage = (date: Date) => {
+    return date.toISOString().split('T')[0];
+  };
+
+  // Check if we already have attendance for the selected date
+  useEffect(() => {
+    if (date) {
+      const dateStr = formatDateForStorage(date);
+      const existingRecords = attendanceHistory.filter(record => record.date === dateStr);
+      
+      if (existingRecords.length > 0) {
+        // Update employee statuses based on saved records
+        setEmployees(
+          employees.map(emp => {
+            const record = existingRecords.find(rec => rec.employeeId === emp.id);
+            return record ? { ...emp, status: record.status } : emp;
+          })
+        );
+        
+        toast({
+          title: "Attendance Loaded",
+          description: `Loaded attendance records for ${date.toLocaleDateString()}`,
+        });
+      }
+    }
+  }, [date, attendanceHistory]);
+
   const markAttendance = (employeeId: number, newStatus: string) => {
+    // Update employee status in the UI
     setEmployees(employees.map(emp => 
       emp.id === employeeId ? { ...emp, status: newStatus } : emp
     ));
+    
+    // Update attendance history
+    if (date) {
+      const dateStr = formatDateForStorage(date);
+      const newRecord: AttendanceRecord = {
+        employeeId,
+        date: dateStr,
+        status: newStatus,
+        recordedAt: new Date()
+      };
+      
+      // Remove existing record for this employee and date if it exists
+      const filteredHistory = attendanceHistory.filter(
+        record => !(record.employeeId === employeeId && record.date === dateStr)
+      );
+      
+      // Add the new record
+      setAttendanceHistory([...filteredHistory, newRecord]);
+    }
+    
+    // Update employee contract status if marked as absent
+    if (newStatus === "Absent") {
+      // In a real implementation, this would update the employee's leave balance
+      const employee = employees.find(emp => emp.id === employeeId);
+      if (employee && employee.leaveBalance > 0) {
+        // Reduce leave balance
+        setEmployees(employees.map(emp => 
+          emp.id === employeeId ? { ...emp, leaveBalance: emp.leaveBalance - 1 } : emp
+        ));
+      }
+    }
     
     toast({
       title: "Attendance updated",
@@ -47,11 +155,53 @@ export default function AttendanceTracker() {
   };
 
   const recordAllAttendance = () => {
+    if (!date) return;
+    
+    const dateStr = formatDateForStorage(date);
+    
+    // Create records for all employees
+    const newRecords = employees.map(employee => ({
+      employeeId: employee.id,
+      date: dateStr,
+      status: employee.status,
+      recordedAt: new Date()
+    }));
+    
+    // Remove any existing records for this date
+    const filteredHistory = attendanceHistory.filter(record => record.date !== dateStr);
+    
+    // Add new records
+    setAttendanceHistory([...filteredHistory, ...newRecords]);
+    
+    // Impact on payroll for absences
+    const absentEmployees = employees.filter(emp => emp.status === "Absent");
+    if (absentEmployees.length > 0) {
+      // In a real implementation, this would trigger updates to payroll calculations
+    }
+    
     toast({
       title: "Attendance Recorded",
-      description: `Attendance for ${date?.toLocaleDateString()} has been recorded on the blockchain`,
+      description: `Attendance for ${date.toLocaleDateString()} has been recorded on the blockchain`,
     });
   };
+
+  // Auto-generate today's attendance if it doesn't exist
+  useEffect(() => {
+    const today = formatDateForStorage(new Date());
+    const hasToday = attendanceHistory.some(record => record.date === today);
+    
+    if (!hasToday && attendanceHistory.length === 0) {
+      // For demo purposes, let's simulate recording attendance for today
+      const initialRecords = employees.map(employee => ({
+        employeeId: employee.id,
+        date: today,
+        status: employee.status,
+        recordedAt: new Date()
+      }));
+      
+      setAttendanceHistory(initialRecords);
+    }
+  }, []);
 
   return (
     <div className="space-y-4">
@@ -109,6 +259,7 @@ export default function AttendanceTracker() {
                     <TableHead>Employee</TableHead>
                     <TableHead className="hidden md:table-cell">Department</TableHead>
                     <TableHead>Status</TableHead>
+                    <TableHead>Leave Balance</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -121,6 +272,14 @@ export default function AttendanceTracker() {
                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(employee.status)}`}>
                           {employee.status}
                         </span>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center">
+                          {employee.leaveBalance} days
+                          {employee.leaveBalance < 5 && (
+                            <AlertTriangle className="ml-1 h-4 w-4 text-amber-500" />
+                          )}
+                        </div>
                       </TableCell>
                       <TableCell>
                         <Select 

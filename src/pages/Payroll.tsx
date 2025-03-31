@@ -3,12 +3,14 @@ import { Helmet } from "react-helmet";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Calendar } from "lucide-react";
-import { useState } from "react";
+import { Calendar, Download } from "lucide-react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface PayrollRecord {
   id: number;
+  employeeId: number;
   employeeName: string;
   daysWorked: number;
   leavesTaken: number;
@@ -16,66 +18,93 @@ interface PayrollRecord {
   deductions: number;
   finalAmount: number;
   status: "Pending" | "Processed" | "Failed";
+  month: string;
+  year: number;
 }
 
-// Mock data for payroll demonstration
-const mockPayrollData: PayrollRecord[] = [
-  {
-    id: 1,
-    employeeName: "Sarah Johnson",
-    daysWorked: 22,
-    leavesTaken: 0,
+// Mock employee data with contracts
+const mockEmployees = [
+  { 
+    id: 1, 
+    name: "Sarah Johnson", 
+    contractId: 1,
     baseSalary: 5000,
-    deductions: 250,
-    finalAmount: 4750,
-    status: "Processed"
+    department: "Human Resources",
   },
-  {
-    id: 2,
-    employeeName: "Michael Smith",
-    daysWorked: 20,
-    leavesTaken: 2,
+  { 
+    id: 2, 
+    name: "Michael Smith", 
+    contractId: 2,
     baseSalary: 4500,
-    deductions: 225,
-    finalAmount: 4275,
-    status: "Processed"
+    department: "Engineering",
   },
-  {
-    id: 3,
-    employeeName: "Emily Davis",
-    daysWorked: 18,
-    leavesTaken: 4,
+  { 
+    id: 3, 
+    name: "Emily Davis", 
+    contractId: 3,
     baseSalary: 4800,
-    deductions: 480,
-    finalAmount: 4320,
-    status: "Pending"
+    department: "Marketing",
   },
-  {
-    id: 4,
-    employeeName: "James Wilson",
-    daysWorked: 22,
-    leavesTaken: 0,
+  { 
+    id: 4, 
+    name: "James Wilson", 
+    contractId: 4,
     baseSalary: 5200,
-    deductions: 260,
-    finalAmount: 4940,
-    status: "Pending"
+    department: "Finance",
   },
-  {
-    id: 5,
-    employeeName: "David Thompson",
-    daysWorked: 21,
-    leavesTaken: 1,
+  { 
+    id: 5, 
+    name: "David Thompson", 
+    contractId: 5,
     baseSalary: 5500,
-    deductions: 275,
-    finalAmount: 5225,
-    status: "Pending"
+    department: "Product",
   }
 ];
 
+// Mock attendance data
+const mockAttendance = [
+  { employeeId: 1, present: 22, absent: 0, late: 0 },
+  { employeeId: 2, present: 20, absent: 2, late: 0 },
+  { employeeId: 3, present: 18, absent: 4, late: 0 },
+  { employeeId: 4, present: 22, absent: 0, late: 0 },
+  { employeeId: 5, present: 21, absent: 1, late: 0 },
+];
+
 export default function Payroll() {
-  const [currentMonth] = useState("May 2023");
-  const [payrollRecords, setPayrollRecords] = useState<PayrollRecord[]>(mockPayrollData);
+  const [selectedMonth, setSelectedMonth] = useState("May");
+  const [selectedYear, setSelectedYear] = useState("2023");
+  const [payrollRecords, setPayrollRecords] = useState<PayrollRecord[]>([]);
   const { toast } = useToast();
+
+  // Generate payroll records based on employees, contracts, and attendance
+  useEffect(() => {
+    const newRecords: PayrollRecord[] = mockEmployees.map((employee, index) => {
+      const attendance = mockAttendance[index];
+      
+      // Calculate deductions based on absences
+      const absenteeismRate = attendance.absent > 0 ? attendance.absent / 22 : 0;
+      const deductions = employee.baseSalary * absenteeismRate;
+      
+      // Calculate final amount
+      const finalAmount = employee.baseSalary - deductions;
+      
+      return {
+        id: index + 1,
+        employeeId: employee.id,
+        employeeName: employee.name,
+        daysWorked: attendance.present,
+        leavesTaken: attendance.absent,
+        baseSalary: employee.baseSalary,
+        deductions: Math.round(deductions * 100) / 100,
+        finalAmount: Math.round(finalAmount * 100) / 100,
+        status: "Pending",
+        month: selectedMonth,
+        year: parseInt(selectedYear)
+      };
+    });
+    
+    setPayrollRecords(newRecords);
+  }, [selectedMonth, selectedYear]);
 
   const getStatusColor = (status: string) => {
     switch(status) {
@@ -116,7 +145,44 @@ export default function Payroll() {
     });
   };
 
+  const generatePayslips = () => {
+    toast({
+      title: "Payslips Generated",
+      description: "All payslips have been generated and are ready for distribution",
+    });
+  };
+
+  const recalculatePayroll = () => {
+    // Simulate updating attendance data and recalculating
+    const updatedRecords = payrollRecords.map(record => {
+      // For demonstration, we slightly modify the days worked
+      const attendance = mockAttendance.find(a => a.employeeId === record.employeeId)!;
+      
+      // Recalculate based on attendance
+      const absenteeismRate = attendance.absent > 0 ? attendance.absent / 22 : 0;
+      const deductions = record.baseSalary * absenteeismRate;
+      const finalAmount = record.baseSalary - deductions;
+      
+      return {
+        ...record,
+        daysWorked: attendance.present,
+        leavesTaken: attendance.absent,
+        deductions: Math.round(deductions * 100) / 100,
+        finalAmount: Math.round(finalAmount * 100) / 100,
+        status: "Pending"
+      };
+    });
+    
+    setPayrollRecords(updatedRecords);
+    
+    toast({
+      title: "Payroll Recalculated",
+      description: "Payroll has been recalculated based on the latest attendance records",
+    });
+  };
+
   const pendingCount = payrollRecords.filter(record => record.status === "Pending").length;
+  const currentPeriod = `${selectedMonth} ${selectedYear}`;
 
   return (
     <>
@@ -136,15 +202,53 @@ export default function Payroll() {
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <div>
               <CardTitle>Payroll Processing</CardTitle>
-              <CardDescription>
-                For period: {currentMonth}
+              <CardDescription className="flex items-center space-x-2">
+                <span>For period:</span>
+                <div className="flex space-x-2">
+                  <Select defaultValue={selectedMonth} onValueChange={setSelectedMonth}>
+                    <SelectTrigger className="w-32">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="January">January</SelectItem>
+                      <SelectItem value="February">February</SelectItem>
+                      <SelectItem value="March">March</SelectItem>
+                      <SelectItem value="April">April</SelectItem>
+                      <SelectItem value="May">May</SelectItem>
+                      <SelectItem value="June">June</SelectItem>
+                      <SelectItem value="July">July</SelectItem>
+                      <SelectItem value="August">August</SelectItem>
+                      <SelectItem value="September">September</SelectItem>
+                      <SelectItem value="October">October</SelectItem>
+                      <SelectItem value="November">November</SelectItem>
+                      <SelectItem value="December">December</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  
+                  <Select defaultValue={selectedYear} onValueChange={setSelectedYear}>
+                    <SelectTrigger className="w-24">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="2022">2022</SelectItem>
+                      <SelectItem value="2023">2023</SelectItem>
+                      <SelectItem value="2024">2024</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </CardDescription>
             </div>
-            {pendingCount > 0 && (
-              <Button onClick={processAllPending}>
-                Process All Pending ({pendingCount})
+            <div className="flex space-x-2">
+              <Button variant="outline" onClick={recalculatePayroll}>
+                <Calendar className="mr-2 h-4 w-4" />
+                Sync Attendance
               </Button>
-            )}
+              {pendingCount > 0 && (
+                <Button onClick={processAllPending}>
+                  Process All ({pendingCount})
+                </Button>
+              )}
+            </div>
           </CardHeader>
           <CardContent>
             <div className="rounded-md border">
@@ -185,14 +289,43 @@ export default function Payroll() {
                             Process
                           </Button>
                         )}
-                        {record.status !== "Pending" && (
-                          <span className="text-xs text-muted-foreground">No actions available</span>
+                        {record.status === "Processed" && (
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={() => toast({
+                              title: "Payslip Generated",
+                              description: `Payslip for ${record.employeeName} has been generated`
+                            })}
+                          >
+                            <Download className="mr-1 h-3 w-3" /> Payslip
+                          </Button>
+                        )}
+                        {record.status === "Failed" && (
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={() => processPayroll(record.id)}
+                          >
+                            Retry
+                          </Button>
                         )}
                       </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
               </Table>
+            </div>
+            
+            <div className="mt-4 flex justify-between items-center">
+              <div>
+                <span className="text-sm text-muted-foreground">
+                  Total payroll: ${payrollRecords.reduce((sum, record) => sum + record.finalAmount, 0).toLocaleString()}
+                </span>
+              </div>
+              <Button variant="outline" onClick={generatePayslips}>
+                <Download className="mr-2 h-4 w-4" /> Generate All Payslips
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -209,7 +342,8 @@ export default function Payroll() {
               <p>
                 The HR ChainFlow payroll system utilizes smart contracts to automate salary payments,
                 ensuring transparency, accuracy, and security. Payments are executed directly on the
-                blockchain, creating an immutable record of all transactions.
+                blockchain, creating an immutable record of all transactions. The system automatically 
+                calculates salary based on attendance records.
               </p>
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -221,9 +355,9 @@ export default function Payroll() {
                 </div>
                 
                 <div className="p-4 bg-muted rounded-lg">
-                  <h3 className="font-medium mb-2">Transparent Records</h3>
+                  <h3 className="font-medium mb-2">Attendance Integration</h3>
                   <p className="text-sm text-muted-foreground">
-                    All payment records are stored on the blockchain, providing complete transparency
+                    Payroll automatically adjusts based on employee attendance and leave records
                   </p>
                 </div>
                 

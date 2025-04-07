@@ -1,5 +1,4 @@
 
-import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import BusinessProposalModel from "@/components/BusinessProposalModel";
@@ -12,14 +11,14 @@ const Index = () => {
   return (
     <>
       <Helmet>
-        <title>Business Proposal | HR ChainFlow</title>
+        <title>Business Plan | HR ChainFlow</title>
       </Helmet>
       
       <div className="space-y-6">
         <div className="flex flex-col space-y-4">
-          <h1 className="text-3xl font-bold tracking-tight">Business Proposal</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Business Plan Generator</h1>
           <p className="text-muted-foreground">
-            Generate a comprehensive business proposal based on the HR ChainFlow system features.
+            Generate a comprehensive business plan for implementing the HR ChainFlow blockchain system at your organization.
           </p>
         </div>
         

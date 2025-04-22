@@ -1,15 +1,13 @@
 
 import { useState, useEffect } from "react";
 import { useAccount, useConnect, useDisconnect } from "wagmi";
-import { InjectedConnector } from "wagmi/connectors/injected";
 import { Button } from "@/components/ui/button";
 import { Wallet } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
 
 export default function ConnectWallet() {
   const { address, isConnected } = useAccount();
-  const { connect } = useConnect({
-    connector: new InjectedConnector(),
-  });
+  const { connect, connectors, error } = useConnect();
   const { disconnect } = useDisconnect();
   const [displayAddress, setDisplayAddress] = useState("");
 
@@ -20,6 +18,29 @@ export default function ConnectWallet() {
       );
     }
   }, [address]);
+
+  useEffect(() => {
+    if (error) {
+      toast({
+        title: "Connection failed",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  }, [error]);
+
+  const handleConnect = () => {
+    const connector = connectors[0];
+    if (connector) {
+      connect({ connector });
+    } else {
+      toast({
+        title: "No wallet found",
+        description: "Please install a Web3 wallet like MetaMask",
+        variant: "destructive"
+      });
+    }
+  };
 
   if (isConnected) {
     return (
@@ -40,7 +61,7 @@ export default function ConnectWallet() {
 
   return (
     <Button 
-      onClick={() => connect()}
+      onClick={handleConnect}
       className="flex items-center gap-2"
     >
       <Wallet className="h-4 w-4" />

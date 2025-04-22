@@ -1,13 +1,15 @@
 
-import { useAccount } from 'wagmi';
+import { useAccount, useConnect } from 'wagmi';
 import { useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Wallet } from "lucide-react";
 import { Helmet } from "react-helmet-async";
+import { toast } from "@/hooks/use-toast";
 
 const AdminLogin = () => {
   const { isConnected } = useAccount();
+  const { connect, connectors, isLoading, error } = useConnect();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -15,6 +17,29 @@ const AdminLogin = () => {
       navigate('/dashboard');
     }
   }, [isConnected, navigate]);
+
+  useEffect(() => {
+    if (error) {
+      toast({
+        title: "Connection failed",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  }, [error]);
+
+  const handleConnect = () => {
+    const connector = connectors[0];
+    if (connector) {
+      connect({ connector });
+    } else {
+      toast({
+        title: "No wallet found",
+        description: "Please install a Web3 wallet like MetaMask",
+        variant: "destructive"
+      });
+    }
+  };
 
   return (
     <>
@@ -38,9 +63,11 @@ const AdminLogin = () => {
               <Button
                 className="w-full py-6 text-lg flex items-center justify-center gap-3"
                 size="lg"
+                onClick={handleConnect}
+                disabled={isLoading}
               >
                 <Wallet className="h-5 w-5" />
-                Connect Wallet
+                {isLoading ? "Connecting..." : "Connect Wallet"}
               </Button>
             </div>
             <p className="text-sm text-gray-500 text-center mt-4">

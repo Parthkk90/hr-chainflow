@@ -9,7 +9,8 @@ import React from "react";
 const chains = [mainnet, sepolia, polygon, polygonMumbai];
 
 // Configure Web3Modal & Ethereum Client
-const projectId = "YOUR_PROJECT_ID"; // Replace with your WalletConnect projectId if you have one
+// Using a sample project ID - replace with your own in production
+const projectId = "3aea2b5e1dbc0a7a51063a89e24d7194"; 
 
 const { publicClient } = configureChains(chains, [w3mProvider({ projectId })]);
 

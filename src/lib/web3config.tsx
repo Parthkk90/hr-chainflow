@@ -1,37 +1,44 @@
 
-import { configureChains, createConfig } from "wagmi";
+import { configureChains, createClient, createConfig } from "wagmi";
 import { mainnet, sepolia, polygon, polygonMumbai } from "wagmi/chains";
-import { EthereumClient, w3mConnectors, w3mProvider } from "@web3modal/ethereum";
-import { Web3Modal } from "@web3modal/react";
-import React from "react";
+import { MetaMaskConnector } from "wagmi/connectors/metaMask";
+import { InjectedConnector } from "wagmi/connectors/injected";
+import { WalletConnectConnector } from "wagmi/connectors/walletConnect";
+import { publicProvider } from "wagmi/providers/public";
+import { infuraProvider } from "wagmi/providers/infura";
 
-// Choose which chains you'd like to support
-const chains = [mainnet, sepolia, polygon, polygonMumbai];
+// Configure chains and providers
+const { chains, publicClient } = configureChains(
+  [mainnet, sepolia, polygon, polygonMumbai],
+  [
+    publicProvider(),
+    // You can add infuraProvider if needed for better stability
+    // infuraProvider({ apiKey: "your-infura-key" }),
+  ]
+);
 
-// Configure Web3Modal & Ethereum Client
-// Using a sample project ID - replace with your own in production
-const projectId = "3aea2b5e1dbc0a7a51063a89e24d7194"; 
+// Create connectors
+const metamaskConnector = new MetaMaskConnector({
+  chains,
+  options: {
+    shimDisconnect: true,
+  },
+});
 
-const { publicClient } = configureChains(chains, [w3mProvider({ projectId })]);
+const injectedConnector = new InjectedConnector({
+  chains,
+  options: {
+    shimDisconnect: true,
+    name: "Injected",
+  },
+});
 
+// Create wagmi config
 export const wagmiConfig = createConfig({
   autoConnect: true,
-  connectors: w3mConnectors({ projectId, chains }),
+  connectors: [metamaskConnector, injectedConnector],
   publicClient,
 });
 
-export const ethereumClient = new EthereumClient(wagmiConfig, chains);
-
-// Export a function that returns the Web3Modal component instead of directly using JSX
-export const getWeb3ModalComponent = () => {
-  return Web3Modal && (
-    <Web3Modal
-      projectId={projectId}
-      ethereumClient={ethereumClient}
-      themeVariables={{
-        '--w3m-accent-color': '#3B82F6',
-        '--w3m-background-color': '#FFFFFF'
-      }}
-    />
-  );
-};
+// We don't need Web3Modal anymore, as we're using direct connectors
+export const getWeb3ModalComponent = () => null;

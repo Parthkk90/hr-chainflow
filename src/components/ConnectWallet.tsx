@@ -38,14 +38,31 @@ export default function ConnectWallet() {
     }
   }, [error]);
 
-  const handleConnect = () => {
-    const connector = connectors[0];
-    if (connector) {
-      connect({ connector });
-    } else {
+  const handleConnect = async () => {
+    try {
+      // Try to connect with MetaMask first
+      const metamaskConnector = connectors.find(c => c.id === 'metaMask');
+      
+      if (metamaskConnector) {
+        await connect({ connector: metamaskConnector });
+      } else {
+        // Fallback to any available connector
+        const availableConnector = connectors[0];
+        if (availableConnector) {
+          await connect({ connector: availableConnector });
+        } else {
+          toast({
+            title: "No wallet found",
+            description: "Please install a Web3 wallet like MetaMask",
+            variant: "destructive"
+          });
+        }
+      }
+    } catch (err) {
+      console.error("Failed to connect wallet:", err);
       toast({
-        title: "No wallet found",
-        description: "Please install a Web3 wallet like MetaMask",
+        title: "Connection failed",
+        description: "Could not connect to wallet. Please try again.",
         variant: "destructive"
       });
     }

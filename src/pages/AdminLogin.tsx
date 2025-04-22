@@ -12,6 +12,7 @@ const AdminLogin = () => {
   const { connect, connectors, isLoading, error } = useConnect();
   const navigate = useNavigate();
 
+  // Automatically navigate to dashboard when connected
   useEffect(() => {
     if (isConnected) {
       navigate('/dashboard');
@@ -28,16 +29,21 @@ const AdminLogin = () => {
     }
   }, [error]);
 
-  const handleConnect = () => {
-    const connector = connectors[0];
-    if (connector) {
-      connect({ connector });
-    } else {
-      toast({
-        title: "No wallet found",
-        description: "Please install a Web3 wallet like MetaMask",
-        variant: "destructive"
-      });
+  const handleConnect = async () => {
+    try {
+      const connector = connectors[0];
+      if (connector) {
+        await connect({ connector });
+        // After successful connection, navigation is handled by the isConnected effect
+      } else {
+        toast({
+          title: "No wallet found",
+          description: "Please install a Web3 wallet like MetaMask",
+          variant: "destructive"
+        });
+      }
+    } catch (err) {
+      console.error("Connection error:", err);
     }
   };
 

@@ -4,12 +4,14 @@ import { useAccount, useConnect, useDisconnect } from "wagmi";
 import { Button } from "@/components/ui/button";
 import { Wallet } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 
 export default function ConnectWallet() {
   const { address, isConnected } = useAccount();
-  const { connect, connectors, error } = useConnect();
+  const { connect, connectors, error, isLoading } = useConnect();
   const { disconnect } = useDisconnect();
   const [displayAddress, setDisplayAddress] = useState("");
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (address) {
@@ -18,6 +20,13 @@ export default function ConnectWallet() {
       );
     }
   }, [address]);
+
+  useEffect(() => {
+    // If connected, navigate to dashboard
+    if (isConnected) {
+      navigate('/dashboard');
+    }
+  }, [isConnected, navigate]);
 
   useEffect(() => {
     if (error) {
@@ -63,9 +72,10 @@ export default function ConnectWallet() {
     <Button 
       onClick={handleConnect}
       className="flex items-center gap-2"
+      disabled={isLoading}
     >
       <Wallet className="h-4 w-4" />
-      <span>Connect Wallet</span>
+      <span>{isLoading ? "Connecting..." : "Connect Wallet"}</span>
     </Button>
   );
 }

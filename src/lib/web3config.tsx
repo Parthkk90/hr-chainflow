@@ -1,19 +1,23 @@
 
-import { configureChains, createClient, createConfig } from "wagmi";
+import { configureChains, createConfig } from "wagmi";
 import { mainnet, sepolia, polygon, polygonMumbai } from "wagmi/chains";
 import { MetaMaskConnector } from "wagmi/connectors/metaMask";
 import { InjectedConnector } from "wagmi/connectors/injected";
-import { WalletConnectConnector } from "wagmi/connectors/walletConnect";
-import { publicProvider } from "wagmi/providers/public";
+import { alchemyProvider } from "wagmi/providers/alchemy";
 import { infuraProvider } from "wagmi/providers/infura";
+import { jsonRpcProvider } from "wagmi/providers/jsonRpc";
 
-// Configure chains and providers
+// Configure chains and providers with reliable fallbacks
 const { chains, publicClient } = configureChains(
   [mainnet, sepolia, polygon, polygonMumbai],
   [
-    publicProvider(),
-    // You can add infuraProvider if needed for better stability
-    // infuraProvider({ apiKey: "your-infura-key" }),
+    // Using infura as primary provider with fallback to a default JSON-RPC URL
+    infuraProvider({ apiKey: "9aa3d95b3bc440fa88ea12eaa4456161" }), // Public Infura ID, replace with your own for production
+    jsonRpcProvider({
+      rpc: (chain) => ({
+        http: chain.rpcUrls.default.http[0],
+      }),
+    }),
   ]
 );
 

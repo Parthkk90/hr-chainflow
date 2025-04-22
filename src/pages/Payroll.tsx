@@ -169,7 +169,7 @@ export default function Payroll() {
         leavesTaken: attendance.absent,
         deductions: Math.round(deductions * 100) / 100,
         finalAmount: Math.round(finalAmount * 100) / 100,
-        status: "Pending" as const // This is the fix - using 'as const' to make TypeScript recognize this as a literal type
+        status: "Pending" as const // Using 'as const' to ensure TypeScript recognizes this as a literal type
       };
     });
     

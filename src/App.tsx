@@ -9,7 +9,6 @@ import { wagmiConfig, getWeb3ModalComponent } from "@/lib/web3config";
 import { HelmetProvider } from "react-helmet-async";
 
 import Layout from "./components/Layout";
-import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import Employees from "./pages/Employees";
 import Payroll from "./pages/Payroll";
@@ -30,8 +29,7 @@ const App = () => (
           <BrowserRouter>
             <Routes>
               <Route element={<Layout />}>
-                <Route path="/" element={<Index />} />
-                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/" element={<Dashboard />} />
                 <Route path="/employees" element={<Employees />} />
                 <Route path="/payroll" element={<Payroll />} />
                 <Route path="/attendance" element={<Attendance />} />

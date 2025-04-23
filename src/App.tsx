@@ -3,13 +3,13 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { WagmiConfig } from "wagmi";
-import { wagmiConfig } from "@/lib/web3config";
+import { wagmiConfig, getWeb3ModalComponent } from "@/lib/web3config";
 import { HelmetProvider } from "react-helmet-async";
 
 import Layout from "./components/Layout";
-import AdminLogin from "./pages/AdminLogin";
+import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import Employees from "./pages/Employees";
 import Payroll from "./pages/Payroll";
@@ -26,11 +26,11 @@ const App = () => (
         <TooltipProvider>
           <Toaster />
           <Sonner />
+          {getWeb3ModalComponent()}
           <BrowserRouter>
             <Routes>
-              <Route path="/" element={<AdminLogin />} />
-              <Route path="/login" element={<AdminLogin />} />
               <Route element={<Layout />}>
+                <Route path="/" element={<Index />} />
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/employees" element={<Employees />} />
                 <Route path="/payroll" element={<Payroll />} />

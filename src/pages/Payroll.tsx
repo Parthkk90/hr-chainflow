@@ -1,4 +1,3 @@
-
 import { Helmet } from "react-helmet";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -169,7 +168,7 @@ export default function Payroll() {
         leavesTaken: attendance.absent,
         deductions: Math.round(deductions * 100) / 100,
         finalAmount: Math.round(finalAmount * 100) / 100,
-        status: "Pending" as const // Using 'as const' to ensure TypeScript recognizes this as a literal type
+        status: "Pending" as const // Explicitly type this as a literal "Pending"
       };
     });
     

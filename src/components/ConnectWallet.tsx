@@ -1,17 +1,17 @@
 
 import { useState, useEffect } from "react";
 import { useAccount, useConnect, useDisconnect } from "wagmi";
+import { InjectedConnector } from "wagmi/connectors/injected";
 import { Button } from "@/components/ui/button";
 import { Wallet } from "lucide-react";
-import { toast } from "@/hooks/use-toast";
-import { useNavigate } from "react-router-dom";
 
 export default function ConnectWallet() {
   const { address, isConnected } = useAccount();
-  const { connect, connectors, error, isLoading } = useConnect();
+  const { connect } = useConnect({
+    connector: new InjectedConnector(),
+  });
   const { disconnect } = useDisconnect();
   const [displayAddress, setDisplayAddress] = useState("");
-  const navigate = useNavigate();
 
   useEffect(() => {
     if (address) {
@@ -20,53 +20,6 @@ export default function ConnectWallet() {
       );
     }
   }, [address]);
-
-  useEffect(() => {
-    // If connected, navigate to dashboard
-    if (isConnected) {
-      navigate('/dashboard');
-    }
-  }, [isConnected, navigate]);
-
-  useEffect(() => {
-    if (error) {
-      toast({
-        title: "Connection failed",
-        description: error.message,
-        variant: "destructive"
-      });
-    }
-  }, [error]);
-
-  const handleConnect = async () => {
-    try {
-      // Try to connect with MetaMask first
-      const metamaskConnector = connectors.find(c => c.id === 'metaMask');
-      
-      if (metamaskConnector) {
-        await connect({ connector: metamaskConnector });
-      } else {
-        // Fallback to any available connector
-        const availableConnector = connectors[0];
-        if (availableConnector) {
-          await connect({ connector: availableConnector });
-        } else {
-          toast({
-            title: "No wallet found",
-            description: "Please install a Web3 wallet like MetaMask",
-            variant: "destructive"
-          });
-        }
-      }
-    } catch (err) {
-      console.error("Failed to connect wallet:", err);
-      toast({
-        title: "Connection failed",
-        description: "Could not connect to wallet. Please try again.",
-        variant: "destructive"
-      });
-    }
-  };
 
   if (isConnected) {
     return (
@@ -87,12 +40,11 @@ export default function ConnectWallet() {
 
   return (
     <Button 
-      onClick={handleConnect}
+      onClick={() => connect()}
       className="flex items-center gap-2"
-      disabled={isLoading}
     >
       <Wallet className="h-4 w-4" />
-      <span>{isLoading ? "Connecting..." : "Connect Wallet"}</span>
+      <span>Connect Wallet</span>
     </Button>
   );
 }

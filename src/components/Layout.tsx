@@ -1,16 +1,12 @@
 
 import { useAccount } from "wagmi";
-import { Outlet, Navigate } from "react-router-dom";
+import { Outlet } from "react-router-dom";
 import NavigationMenu from "./NavigationMenu";
 import ConnectWallet from "./ConnectWallet";
 import { Helmet } from "react-helmet";
 
 export default function Layout() {
   const { isConnected } = useAccount();
-
-  if (!isConnected) {
-    return <Navigate to="/" replace />;
-  }
 
   return (
     <>
